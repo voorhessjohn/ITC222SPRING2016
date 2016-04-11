@@ -1,0 +1,52 @@
+Use MetroAlt 
+
+Select * from Employee --Question 1
+
+Select EmployeeLastName, EmployeeFirstName, EmployeeEmail --Question 2
+from Employee
+
+Select * from Employee --Question 3
+order by EmployeeLastName 
+
+Select * from Employee --Question 4
+order by EmployeeHireDate
+
+Select * from Employee --Question 5
+where EmployeeCity='Seattle'
+
+Select * from Employee --Question 6
+Where EmployeePhone is null
+
+Select * from Employee --Question 7
+Where EmployeePhone is not null
+
+Select * from Employee --Question 8
+Where EmployeeLastName like 'c%'
+
+Select EmployeeKey, EmployeeHourlyPayRate  --Question 9
+from EmployeePosition
+order by EmployeeHourlyPayRate DESC
+
+Select EmployeeKey, EmployeeHourlyPayRate  --Question 10
+from EmployeePosition
+where PositionKey='2'
+order by EmployeeHourlyPayRate DESC
+
+Select top 10 EmployeeKey, EmployeeHourlyPayRate --Question 11
+from EmployeePosition
+where PositionKey='2'
+order by EmployeeHourlyPayRate DESC
+
+Select Top 10 EmployeeKey, EmployeeHourlyPayRate --Question 12
+from EmployeePosition
+where PositionKey='2'
+order by EmployeeHourlyPayRate DESC
+
+Select EmployeeKey, EmployeeHourlyPayRate --Question 13
+from EmployeePosition
+where PositionKey='2'
+order by EmployeeHourlyPayRate DESC
+Offset 20 rows Fetch next 10 rows only
+
+Select Distinct BusDriverShiftKey, BusRouteKey --Question 14
+from BusScheduleAssignment
