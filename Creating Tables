@@ -9,7 +9,7 @@ Create Table BusService
 
 Create Table Maintenance
 (
-	Maintenance Key int identity(1,1) primary key,
+	MaintenanceKey int identity(1,1) primary key,
 	MaintenanceDate Date not null,
 	BusKey int not null
 	Constraint FK_Bus Foreign Key(BusKey)
