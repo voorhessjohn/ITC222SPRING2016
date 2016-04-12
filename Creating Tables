@@ -1,0 +1,48 @@
+Use MetroAlt
+
+Create Table BusService
+(
+	BusServiceKey int identity(1,1) primary key,
+	BusServiceName nvarchar(255) not null,
+	BusServiceDescription nvarchar(255)
+)
+
+Create Table Maintenance
+(
+	Maintenance Key int identity(1,1) primary key,
+	MaintenanceDate Date not null,
+	BusKey int not null
+	Constraint FK_Bus Foreign Key(BusKey)
+		References Bus(BusKey)
+)
+
+Create Table MaintenanceDetail
+(
+	MaintenanceDetailKey int identity(1,1),
+	MaintenanceKey int not null,
+	EmployeeKey int not null,
+	BusServiceKey int not null,
+	MaintenanceNotes nvarchar(255)
+)
+
+Alter Table MaintenanceDetail
+Add Constraint Pk_MaintenanceDetail 
+     primary key (MaintenanceDetailKey);
+
+Alter Table MaintenanceKey
+Add Constraint Fk_MaintenanceKey
+	References MaintenanceDetail(MaintenanceDetailKey);
+
+Alter Table EmployeeKey
+Add Constraint Fk_EmployeeKey
+	References MaintenanceDetail(MaintenanceDetailKey);
+
+Alter Table BusServiceKey
+Add Constraint Fk_BusServiceKey
+	References MaintenanceDetail(MaintenanceDetailKey);
+
+Alter Table BusType
+Add BusTypeAccessible bit default 0; --defaults to 'no', when SELECT is performed, CASE WHEN is used to convert to YES and NO
+
+Alter Table Employee
+Add Unique (EmployeeEmail)
