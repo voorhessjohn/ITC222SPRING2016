@@ -1,0 +1,11 @@
+Use MetroAlt
+
+Select year(EmployeeHireDate) [Year],
+EmployeeLastName [Last Name] from Employee 
+Order by year(EmployeeHireDate), EmployeeLastName DESC
+
+Select dateDiff(mm,min(EmployeeHireDate),
+max(EmployeeHireDate)) From Employee
+
+
+--THIS IS INCOMPLETE
