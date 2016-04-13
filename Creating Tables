@@ -9,7 +9,7 @@ Create Table BusService
 
 Create Table Maintenance
 (
-	MaintenanceKey int identity(1,1) primary key,
+	Maintenance Key int identity(1,1) primary key,
 	MaintenanceDate Date not null,
 	BusKey int not null
 	Constraint FK_Bus Foreign Key(BusKey)
@@ -25,21 +25,21 @@ Create Table MaintenanceDetail
 	MaintenanceNotes nvarchar(255)
 )
 
-Alter Table MaintenanceDetail
-Add Constraint Pk_MaintenanceDetail 
+Alter table MaintenanceDetail
+Add Constraint PK_MaintenanceDetail 
      primary key (MaintenanceDetailKey);
 
 Alter Table MaintenanceKey
 Add Constraint Fk_MaintenanceKey
-	References MaintenanceDetail(MaintenanceDetailKey);
+	References MaintenanceDetail(MaintenanceKey);
 
 Alter Table EmployeeKey
 Add Constraint Fk_EmployeeKey
-	References MaintenanceDetail(MaintenanceDetailKey);
+	References MaintenanceDetail(EmployeeKey);
 
 Alter Table BusServiceKey
 Add Constraint Fk_BusServiceKey
-	References MaintenanceDetail(MaintenanceDetailKey);
+	References MaintenanceDetail(BusServiceKey);
 
 Alter Table BusType
 Add BusTypeAccessible bit default 0; --defaults to 'no', when SELECT is performed, CASE WHEN is used to convert to YES and NO
