@@ -1,0 +1,116 @@
+Use Community_Assist
+
+Select * From Donation
+Select Year(DonationDate) from Donation
+Select Distinct Year(DonationDate) from Donation
+Select Distinct Year(DonationDate) [Year] from Donation --in square brackets because year is a reserved word
+Select Distinct Month(DonationDate) [Month] from Donation
+Select Distinct Day (DonationDate) [Day] from Donation
+Select DatePart(YY, DonationDate) [Year] from Donation --does the same thing as above
+Select DatePart(hour, DonationDate) [Hour] from Donation
+Select Distinct DatePart(hour, DonationDate) [Hour] from Donation
+
+Select cast(month(DonationDate) as nchar(2)) + '/' + cast(day(DonationDate) as nchar(2)) + '/' + cast(year(DonationDate) as nchar(4)) as [Date] From Donation
+--cast creates different data types (cant concatenate integers, date functions return integers)
+
+
+--DATE DIFF
+Select dateDiff(yy,min(EmployeeHireDate),
+max(EmployeeHireDate)) From Employee
+--days can be 'dd' or 'day'
+--years can 'yy' or 'year'
+
+Select dateDiff(mm,min(EmployeeHireDate),
+(max(EmployeeHireDate))) / cast(12 as Decimal(10,2)) From Employee
+
+Select dateDiff(mm,min(EmployeeHireDate),
+max(EmployeeHireDate)) / 12 [Years],
+dateDiff(mm,min(EmployeeHireDate),
+max(EmployeeHireDate)) % 12 [Months]
+from Employee
+--returns Years and Months
+
+Select EmployeeKey, format (EmployeeAnnualSalary, '$#,###.00') from Employee --pound signs are optional digits, 0s are required digits
+--phone numbers are entered as a character type 'format' will not work on phone numbers. must cast them to an integer
+
+Select EmployeeKey, '$' + cast(EmployeeAnnualSalary as nvarchar(10)) from Employee
+--format function takes a number and turns it into a character pattern
+
+Select 4 * 3 - 2 / 5 --=12
+
+Select 4 * 3 - 2 / 5.0 --=11.6
+--follow regular order of operations, add decimals to increase digits listed
+
+Select EmployeeAnnualSalary,
+EmployeeAnnualSalary * 1.05 as Raise from Employee
+
+Select Sum(DonationAmount) as total From Donation --'as' is optional
+Select Avg(DonationAmount) as Average From Donation
+Select Count(DonationAmount) number From Donation
+Select Max(DonationAmount) maximum From Donation
+Select Min(DonationAmount) minimum From Donation
+
+Select Year(DonationDate) [year], Sum(donationAmount) total From Donation --wont work. Year operates row by row, sum works on a whole table. conflict between scalar and aggregate function
+
+Select Year(DonationDate) [year], Sum(donationAmount) total 
+From Donation
+Group by Year(donationDate) --you must group to do this
+
+Select Year(DonationDate) [year], Month(DonationDate) [Month],
+Sum(donationAmount) total 
+From Donation
+Group by Year(donationDate), Month(donationDate) --you must group to do this
+
+Select Year(GrantRequestDate) [Year],
+Month(GrantRequestDate) [Month],
+Count(GrantRequestKey) Number ,
+Sum(GrantRequestamount) Total
+from GrantRequest
+Group by Year(GrantRequestDate), Month(GrantRequestDate) --Must group by all aggregate values
+
+Select Year(GrantRequestDate) [Year],
+Month(GrantRequestDate) [Month],
+Count(GrantRequestKey) Number ,
+format(Sum(GrantRequestamount), '$#,###0.00') Total
+from GrantRequest
+Group by Year(GrantRequestDate), Month(GrantRequestDate) --Must group by all aggregate values
+
+--Only See the ones above $1000 Below
+--Cant use aggregate functions in a WHERE CLAUSE
+--'HAVING' is the way to do this
+Select Year(GrantRequestDate) [Year],
+Month(GrantRequestDate) [Month],
+Count(GrantRequestKey) Number ,
+format(Sum(GrantRequestamount), '$#,###0.00') Total
+from GrantRequest
+Group by Year(GrantRequestDate), Month(GrantRequestDate)
+having Sum(GrantRequestAmount) > 1000 --Must group by all aggregate values
+
+Select Year(GrantRequestDate) [Year],
+Month(GrantRequestDate) [Month],
+Count(GrantRequestKey) Number ,
+format(Sum(GrantRequestamount), '$#,###0.00') Total
+from GrantRequest 
+Where Month(GrantRequestDate)=8 --This is allowed
+Group by Year(GrantRequestDate), Month(GrantRequestDate)
+having Sum(GrantRequestAmount) > 1000
+--Where clause always comes before the 'GROUP BY'
+
+Select * from Sys.Databases
+--built in VIEWS that give you information about the server and the database
+--Useful for coming in on the command line
+--within the context of an actual table, there are several hundred of these views
+
+Select * from Sys.Tables
+--Context based so this returns all of the tables in CommunityAssist
+
+use MetroAlt
+Select * from Sys.Tables
+--In this context, it returns the tables in MetroAlt
+
+use Community_Assist
+Select * from sys.columns
+--lists all columns in this DB
+
+Select * from sys.columns where Object_ID=277576027
+Select * from sys.columns where Object_ID=373576369
