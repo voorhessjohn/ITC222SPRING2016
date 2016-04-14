@@ -30,4 +30,7 @@ Select Avg(EmployeeHourlyPayRate) [Average Pay Rate]
 from EmployeePosition
 Group by PositionKey 
 
+--Provide a count of how many employees were hired each year and each month of the year
+Select sum(EmployeeKey) from Employee
+
 --THIS IS INCOMPLETE
