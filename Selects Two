@@ -6,6 +6,28 @@ Order by year(EmployeeHireDate), EmployeeLastName DESC
 
 Select dateDiff(mm,min(EmployeeHireDate),
 max(EmployeeHireDate)) From Employee
+--Output the employee phone number so it looks like (206)555-1234
 
+--Output the employee hourly wage so it looks like $45.00 (EmployeePosition)
+Select format (EmployeeHourlyPayRate, '$##.00') [Pay Rate] from EmployeePosition
+
+--List only the employees who were hired between 2013 and 2015
+Select EmployeeLastName [Employee Last Name], year(EmployeeHireDate) [Year] from Employee
+Where year(EmployeeHireDate) between 2013 AND 2015
+
+--Output the position, the hourly wage and the hourly wage multiplied by 40 to see what a weekly wage might look like
+Select PositionKey [Position],  EmployeeHourlyPayRate [Hourly Rate], EmployeeHourlyPayRate * 40 [Weekly Wage] 
+from EmployeePosition
+
+--What is the highest hourly pay rate (EmployeePosition)
+Select Max(EmployeeHourlyPayRate) [Rate] from EmployeePosition --79.00
+
+--What is the lowers hourly pay rate
+Select Min(EmployeeHourlyPayRate) [Rate] from EmployeePosition --21.00
+
+--What is the average pay rate by position
+Select Avg(EmployeeHourlyPayRate) [Average Pay Rate]
+from EmployeePosition
+Group by PositionKey 
 
 --THIS IS INCOMPLETE
