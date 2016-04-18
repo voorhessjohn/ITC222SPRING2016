@@ -8,7 +8,7 @@ Select dateDiff(mm,min(EmployeeHireDate),
 max(EmployeeHireDate)) From Employee
 
 --Output the employee phone number so it looks like (206)555-1234
-Select format(EmployeePhone, '(###)###-####') [Phone] from Employee
+Select format(cast(EmployeePhone as bigint), '(###)###-####') [Phone] from Employee
 
 --Output the employee hourly wage so it looks like $45.00 (EmployeePosition)
 Select format (EmployeeHourlyPayRate, '$##.00') [Pay Rate] from EmployeePosition
