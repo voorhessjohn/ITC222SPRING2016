@@ -1,0 +1,72 @@
+use Community_Assist
+--joins
+
+Select * from Employee
+
+Select PersonLastName, PersonFirstName, PersonEmail, EmployeeHireDate, EmployeeAnnualSalary
+from Person
+inner join Employee
+On Person.PersonKey = Employee.PersonKey
+
+--'on' doesnt have to relate defined primary of foreign keys
+--word 'inner' is optional. Joins are 'inner' by default
+
+Select PersonLastName, PersonFirstName, PersonEmail, EmployeeHireDate, EmployeeAnnualSalary
+from Person
+join Employee
+On Person.PersonKey = Employee.PersonKey --'qualified' column name
+
+--you can alias them to save typing
+Select PersonLastName, PersonFirstName, PersonEmail, EmployeeHireDate, EmployeeAnnualSalary
+from Person p
+join Employee e
+On p.PersonKey = E.PersonKey
+
+--to select column that appears in both tables, you must alias it to say which table you want it from
+Select p.PersonKey, PersonLastName, PersonFirstName, PersonEmail, EmployeeHireDate, EmployeeAnnualSalary
+from Person p
+join Employee e
+On p.PersonKey = E.PersonKey
+
+Select * from EmployeePosition
+Select * from Position
+
+--4 table inner join
+Select PersonLastName, PersonFirstName, PersonEmail, EmployeeHireDate, PositionName, EmployeeAnnualSalary
+from Person
+inner Join Employee
+on Person.PersonKey=Employee.PersonKey
+inner Join EmployeePosition
+on Employee.EmployeeKey=EmployeePosition.EmployeeKey
+inner join Position
+on Position.PositionKey=EmployeePosition.PositionKey
+
+Select PersonLastName, PersonFirstName, PersonEmail, EmployeeHireDate, PositionName, EmployeeAnnualSalary
+from Person, Employee, EmployeePosition, Position
+Where Person.PersonKey=Employee.PersonKey
+And Employee.EmployeeKey=EmployeePosition.EmployeeKey
+And Position.PositionKey=EmployeePosition.EmployeeKey
+
+--crossjoin
+Select PersonLastName, PersonFirstName, PersonEmail, EmployeeHireDate
+from Person, Employee
+
+Select PersonLastName, PersonFirstName, PersonEmail, EmployeeHireDate
+from Person
+cross join Employee
+
+--outer join
+Select GrantTypeName, GrantRequest.GrantTypeKey
+from GrantType
+left outer join GrantRequest --left refers to first table, right refers to the second table
+on GrantType.GrantTypeKey = GrantRequest.GrantTypeKey
+Where GRantRequest.GrantTypeKey is null
+
+--inner joins with aggregate functions
+
+Select GrantTypeName, format(avg(GrantRequestAmount),'$#,##0.00') [Average]
+From GrantType
+inner join GrantRequest
+on GrantType.GrantTypeKey=GrantRequest.GrantTypeKey
+Group by GrantTypeName --because its not part of the avg function
+having avg(grantRequestAmount)>400
