@@ -59,9 +59,16 @@ from Employee
 Group by Month(EmployeeHireDate), Year(EmployeeHireDate)
 
 --Return which positions average more than $50 an hour
-Select distinct PositionKey from EmployeePosition
+Select distinct PositionKey [Position] from EmployeePosition
 Where EmployeeHourlyPayRate > 50
 
 --List the total number of riders on Metroalt busses (RiderShip)
 Select count(RiderShipKey) [RIDERS]
 from Ridership
+
+--List all the tables in the metroAlt databases (system views)
+use MetroAlt
+Select * as from Sys.Tables
+
+--List all the databases on server
+select * from sys.databases
