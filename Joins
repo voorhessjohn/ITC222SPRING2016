@@ -45,10 +45,11 @@ Where EmployeePosition.PositionKey is null
 
 
 --Get the employee key, first name, last name, position key for every driver (position key=1) who has never been assigned to a shift. (This is hard it involves an inner join of several tables and then an outer join with BusscheduleAssignment.)
-Select Employee.EmployeeKey, EmployeeFirstName, EmployeeLastName, PositionKey, BusScheduleAssignmentKey
-from Employee
+Select Employee.EmployeeKey, EmployeeFirstName, EmployeeLastName, Position.PositionKey, BusScheduleAssignmentKey
+from Position
+join EmployeePosition on Position.PositionKey = EmployeePosition.PositionKey
+join Employee on EmployeePosition.EmployeeKey = Employee.EmployeeKey
 left outer join BusScheduleAssignment
-on Employee.EmployeeKey = BusScheduleAssignment.EmployeeKey, Position
-Where PositionKey = '1' AND BusScheduleAssignment.EmployeeKey is null 
+on Employee.EmployeeKey = BusScheduleAssignment.EmployeeKey
+Where Position.PositionKey = '1' AND BusScheduleAssignment.EmployeeKey is null 
 
---This is not done yet
