@@ -30,3 +30,4 @@ EmployeeEmail Nvarchar(255)
 
 --This is definitely not done
 --This is a correlated subquery. Return the position key, the employee key and the hourly pay rate for those employees who are receiving the highest pay in their positions. Order it by position key.
+--Limit the sets in the last table with the where statements.
