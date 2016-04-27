@@ -1,0 +1,104 @@
+--Subqueries
+
+--complete query inside another query, separated by perentheses
+--Always separated by perentheses
+Use Community_Assist
+select max(DonationAmount) from Donation
+
+select Personkey, DonationDate, max(DonationAmount) from Donation
+Group by PersonKey, donationDate
+--returns basically the whole table
+
+Select PersonKey, DonationDate, DonationAmount
+From Donation
+Where DonationAmount=(Select max(DonationAmount) from Donation)
+--returns personkey, donationdate and donationamount ONLY where donationamount=max(donationamount)
+--"=" has to return only one value. has to be true or false.
+
+Select PersonLastName, PersonFirstName, DonationDate, DonationAmount
+From Person 
+inner join Donation
+on person.PersonKey=donation.personkey
+Where donationAmount=(Select max(donationAmount) from donation) 
+--subquery with inner join to return first and last name of the max donor
+
+Select GrantTypeName from GrantType
+Where GrantTypeKey not in (Select GrantTypeKey from GrantRequest)
+--subquery that returns set of grants that have not been requested
+
+Select GrantTypeName from GrantType
+Where GrantTypeKey in (Select GrantTypeKey from GrantRequest)
+--subquery that returns set of grants that havet been requested
+
+Select PersonFirstName, PersonLastName
+From Person
+Where PersonKey in (Select PersonKey from Employee Where EmployeeKey in (select EmployeeKey from GrantReviewComment))
+--returns the names of all employees that have commented on grant reviews
+--you can only show fields from the initial "FROM"
+
+--can use subqueries in the SELECT statement
+--show grantrequestamount and total of all grant requests
+Select GrantTypeKey, Sum(GrantRequestAmount) as Total,
+	(Select sum(GrantRequestAmount) from GrantRequest) as GrandTotal
+From GrantRequest
+Group by GrantTypeKey
+--cannot return more tan a single value for it to work
+
+--SAME as above, but with percentage of GrandTotal
+Select GrantTypeKey, Sum(GrantRequestAmount) as Total,
+	(Select sum(GrantRequestAmount) from GrantRequest) as GrandTotal,
+	sum(GrantRequestAmount) / (Select sum(GrantRequestAmount) from GrantRequest) *100 as [Percent]
+From GrantRequest
+Group by GrantTypeKey
+--Without a subquery, youd have to group by whatever was not part of the aggregates
+
+
+--Below adds Formatting to the results to make it "Pretty"
+Select GrantTypeName, Format(Sum(GrantRequestAmount), '$#,##0.00') as Total,
+	Format((Select sum(GrantRequestAmount) from GrantRequest), '$#,##0.00') as GrandTotal,
+	Format((sum(GrantRequestAmount) / (Select sum(GrantRequestAmount) from GrantRequest)), '##.00%') as [Percent]
+From GrantType
+inner join GrantRequest
+on GrantType.GrantTypeKey =GrantRequest.GrantTypeKey
+Group by GrantTypeName
+--order by [Percent] (Doesnt work, because it orders by character value - It can be fixed by recasting as dec)
+
+--Correlated subqueries
+--inner subquery is dependent on the outer query for a value
+
+--requests that are greater than the average request
+--want to compare like to like, not dental to rent
+--food to food, rent to rent etc
+
+Select GrantTypeKey, GrantRequestAmount, GrantRequestDate, PersonKey, GrantRequestExplanation
+From GrantRequest gr1 --must be aliased --first table
+Where GrantRequestAmount >
+(Select avg(GrantRequestAmount) From GrantRequest gr2 --same table is aliased twice so it can compare itself
+	Where gr1.GrantTypeKey=gr2.GrantTypeKey) --compares value of current grant type
+
+--Below just returns the average to test the values in the return from the query above
+Select avg(GrantRequestAmount) 
+From GrantRequest
+Where GrantTypeKey = 2
+
+--below creates table for inserts with subqueries
+Create table PersonT
+(
+	LastName nvarchar(255),
+	FirstName nvarchar(255),
+	Email nvarchar(255)
+)
+--inserts with subquery rather than inserting row by row
+Insert into PersonT(LastName, FirstName, Email)
+Select PersonLastName, PersonFirstName, PersonEmail
+	From Person where PersonLastName like 'T%'
+
+--display the stuff i added
+Select * from PersonT
+
+--inserts from an outside database
+Insert into PersonT(LastName, FirstName, Email)
+Select EmployeeLastName, EmployeeFirstName, EmployeeEmail
+from MetroAlt.dbo.Employee where EmployeeLastName like 'T%'
+--across servers would be servername.databasename.schemaName(ownership).table
+--called "fully qualified"
