@@ -1,18 +1,19 @@
 Use MetroAlt
 --This involves joining tables, then using a subquery. Return the employee key, last name and first name, position name and hourly rate for those employees receiving the maximum pay rate.
-Select EmployeeKey, EmployeeLastName, EmployeeFirstName, PositionName, EmployeeHourlyPayRate
-from Employee
-inner join EmployeePosition
-on Employee.EmployeeKey=EmployeePosition.EmployeeKey
-inner join Position.PositionKey=EmployeePosition.PositionKey
-Where EmployeeHourlyPayrate=(Select max(EmployeeHourlyPayRate)From EmployeePosition)
+Select E.EmployeeKey, EmployeeLastName, EmployeeFirstName, PositionName, EmployeeHourlyPayRate
+from Employee E
+inner join EmployeePosition P
+on E.EmployeeKey = P.EmployeeKey
+inner join Position on Position.PositionKey = P.PositionKey
+where EmployeeHourlyPayRate = (select max(EmployeeHourlyPayRate) from EmployeePosition)
+
 
 --Use only subqueries to do this. Return the key, last name and first name of every employee who has the position name “manager.”
 Select EmployeeKey, EmployeeFirstName, EmployeeLastName
 from Employee
 Where EmployeeKey in (Select EmployeeKey from EmployeePosition where PositionKey in (Select PositionKey from Position where PositionName='Manager'))
 
-Select PositionKey, PositionName from Position
+
 
 
 --This is very difficult. It combines regular aggregate functions, a scalar function, a cast, subqueries and a join. But it produces a useful result. The results should look like this: User Ridership totals for the numbers.
