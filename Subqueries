@@ -20,10 +20,12 @@ Where EmployeeKey in (Select EmployeeKey from EmployeePosition where PositionKey
 --aggregatefunctions.png
 --The Total  is the grand total for all the years. The Percent is Annual Total / Grand Total * 100
 
-Select year(BusScheduleAssignmentDate) [Year], sum(Riders) [Annual Total] 
-from BusScheduleAssignment BA
-inner join Ridership R on BA.BusScheduleAssignmentKey=R.BusScheduleAssignmentKey
-Group by BusScheduleAssignmentDate
+Select distinct year(BusScheduleAssignmentDate) [Year], sum(Riders) [Annual Total], (select avg(riders) from Ridership) [Annual Average], (select sum(Riders) from Ridership) [Total], sum(Riders)/(cast((Select sum(Riders) from Ridership) AS decimal (10,2))) * 100 [Percent]
+from BusScheduleAssignment
+inner join Ridership on BusScheduleAssignment.BusScheduleAssignmentKey=Ridership.BusScheduleAssigmentKey
+Group by year(BusScheduleAssignmentDate)
+Order by year
+
 
 
 
@@ -47,4 +49,3 @@ From EmployeePosition EP1
 Where EmployeeHourlyPayRate=(Select max(EmployeeHourlyPayRate) from EmployeePosition EP2 where EP1.PositionKey=EP2.PositionKey)
 Order by PositionKey
 
---This is definitely not done
