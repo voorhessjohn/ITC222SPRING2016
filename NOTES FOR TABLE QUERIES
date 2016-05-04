@@ -1,0 +1,142 @@
+--Table Expressions
+--an extension of subqueries
+--subquery in the "from"
+
+
+--Table Expression One
+Use Community_Assist
+
+Select PersonKey, [Last], [First], City
+From (Select p.PersonKey, 
+PersonLastName [Last],
+PersonFirstName [First],
+PersonAddressCity City
+From Person p 
+inner join PersonAddress pa
+on p.PersonKey = pa.PersonKey
+Where PersonAddressCity='Bellevue') as BellevueResidents
+
+--Selecting from a query that produces a result set
+--a query based on a query
+--Table from which we query only exists as a result
+
+--if you don't alias the query from which you select, "BellevueResidents", it won't work.
+
+
+--Table Expression Two
+Select RequestMonth, ServiceName, Count(ServiceName) as [Count]
+From
+(Select Month(GrantRequestdate) as RequestMonth, GrantTypeName as ServiceName --The alias is what the outer query sees
+From GrantRequest gr
+inner Join GrantType gt
+on gr.GrantTypeKey = gt.GrantTypeKey) as GrantCount
+Group by RequestMonth, ServiceName --group by is outside of the subquery
+
+
+
+--Common table expressions
+
+
+
+go --needs a go to be run as a separate batch
+with BellevueResidents as 
+( --within the perens is a definition of the table, what defines BellevueResidents
+	Select p.PersonKey, 
+PersonLastName [Last],
+PersonFirstName [First],
+PersonAddressCity City
+From Person p 
+inner join PersonAddress pa
+on p.PersonKey = pa.PersonKey
+Where PersonAddressCity='Bellevue'
+)
+Select [Last], [First], City From BellevueResidents
+
+go 
+Declare @GrantTypeKey int
+Set @GrantTypeKey = 4; --declaring a variable, giving it a value of '4'
+
+--Table Expression Two as a COMMON TABLE EXPRESSION
+
+with ServiceCount as
+(
+Select Month(GrantRequestdate) as RequestMonth, GrantTypeName as ServiceName --The alias is what the outer query sees
+From GrantRequest gr
+inner Join GrantType gt
+on gr.GrantTypeKey=gt.GrantTypeKey
+where gt.GrantTypeKey=@GrantTypeKey
+)
+Select RequestMonth, ServiceName, Count(ServiceName) [Count] from ServiceCount
+Group by RequestMonth, ServiceName
+
+
+--VIEWS
+--queries that represent what different users would see
+--stored queries
+--just like a table
+--people that are using the database dont have to do joins and don't know what the tables are called
+--masks the DB from attack
+
+
+go
+Create view vw_HumanResources
+AS
+Select PersonLastName [Last],
+PersonFirstName [First],
+PersonEmail Email,
+PersonAddressStreet [Address],
+PersonAddressCity City,
+PersonAddressZip ZipCode,
+EmployeeHireDate HireDate
+From Person p
+inner join PersonAddress pa
+on p.PersonKey=pa.PersonKey
+inner join Employee e
+on e.PersonKey=p.PersonKey
+
+
+
+go 
+Select [Last], [First], HireDate from vw_HumanResources
+
+Select PersonLastName from vw_HumanResources --wont work, you can only query aliases from the VIEW
+
+--You can ALTER views or DROP and recreate
+
+go
+Create schema HumanResources
+go
+Create view HumanResources.vw_HR
+AS
+Select PersonLastName [Last],
+PersonFirstName [First],
+PersonEmail Email,
+PersonAddressStreet [Address],
+PersonAddressCity City,
+PersonAddressZip ZipCode,
+EmployeeHireDate HireDate
+From Person p
+inner join PersonAddress pa
+on p.PersonKey=pa.PersonKey
+inner join Employee e
+on e.PersonKey=p.PersonKey
+
+--To inspect a view
+select * from HumanResources.vw_HR
+
+--table value function
+--function that will return a table
+Create function fx_Employee
+(@granttypeKey int)
+returns Table
+As
+Return
+Select GrantRequestKey, GrantRequestDate,
+PersonKey,
+GrantTypeKey, 
+GrantRequestExplanation, GrantRequestAmount
+From GrantRequest
+Where grantTypeKey = @GrantTypeKey
+--use this function in the from clause
+go
+Select * from dbo.fx_Employee(2) --returns all grant request info where grant type key = '2'
