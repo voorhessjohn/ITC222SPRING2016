@@ -1,0 +1,117 @@
+--SET OPERATORS AND MODIFYING DATA
+--Windows Functions Pivot (nonrequired)
+
+--Union
+use Community_Assist;
+
+Select PersonFirstName, PersonLastName, PersonEmail --both sides of the union have to have the same structure
+From Person --Column names from the top will persist for the whole query
+Union
+Select EmployeeFirstName, EmployeeLastName, EmployeeEmail --PersonFirstName should match PersonFirstName above
+From MetroAlt.dbo.Employee
+
+
+--intersect
+Select PersonAddressCity From PersonAddress 
+intersect
+Select EmployeeCity from MetroAlt.dbo.Employee
+
+--except
+
+Select PersonAddressCity From PersonAddress --only returns cities from the first side
+except
+Select EmployeeCity from MetroAlt.dbo.Employee
+
+--opposite of upper except
+Select EmployeeCity from MetroAlt.dbo.Employee --only returns cities from the first query that are not in the second
+except
+Select PersonAddressCity From PersonAddress
+
+/*********************
+not part of assignment
+*********************/
+
+--RANKING FUNCTION
+
+Select GrantRequestKey, GrantTypeKey, GrantRequestAmount,
+Row_Number() over (order by GrantRequestAmount desc) as RowNumber,
+Rank() over (order by GrantRequestAmount desc) as [Rank],
+Dense_Rank() over (order by GrantRequestAmount desc) as [DenseRank],
+Ntile(10) over (order by GrantRequestAmount desc) as [NTile]
+From GrantRequest
+Order by GrantRequestAmount desc
+
+--PARTITION FUNCTIONS
+
+Select GrantRequestKey, GrantTypeKey, GrantRequestAmount,
+Sum(GrantRequestAmount) over() as TotalAllocation, --over() means over entire table because we didnt enter anything in parentheses
+Sum(GrantRequestAmount) over(partition by GrantTypeKey) as PerType
+From GrantRequest
+Order by GrantRequestAmount desc  
+
+--This version has math to figure the percent of whole and percent of grant type
+Select GrantRequestKey, GrantTypeKey, GrantRequestAmount,
+Sum(GrantRequestAmount) over() as TotalAllocation, --over() means over entire table because we didnt enter anything in parentheses
+Sum(GrantRequestAmount) over(partition by GrantTypeKey) as PerType,
+(Sum(GrantRequestAmount) over(partition by GrantTypeKey)/ sum(GrantRequestAmount) over() * 100) as [TypePercentOfWhole],
+GrantRequestAmount/
+Sum(GrantRequestAmount) over(partition by GrantTypeKey) * 100 as PercentPerType
+From GrantRequest
+Order by GrantRequestAmount desc  
+
+--PIVOT
+--for each month, you get how many grants were requested by grant type
+--months are X
+--Grant type key is Y
+--inner query sets up the internal values for the table
+Select [Month], [1], [2], [3], [4], [5], [6], [7], [8], [9], [10]
+From (Select Month(GrantRequestDate) as [Month], GrantTypeKey, GrantRequestKey
+From dbo.GrantRequest) as a
+Pivot (count(GrantRequestKey) for GrantTypeKey in 
+([1], [2], [3], [4], [5], [6], [7], [8], [9], [10])) AS b
+
+/****************
+INSERTS
+****************/
+
+Insert into Person
+(PersonLastName, PersonFirstName, PersonEmail, PersonEntryDate)
+Values('Simpson', 'Homer', 'Homer@springfield.com', GetDate()),
+('Simpson','Marge','Marge@SpringField.com', GetDate())
+
+select * from Person
+
+Create Table Person2
+(
+	LastName nvarchar(255),
+	FirstName nvarchar(255),
+	Email nvarchar(255)
+)
+
+Insert into Person2(LastName, FirstName, Email)
+Select PersonLastName, PersonFirstName, PersonEmail
+From Person
+
+select * from Person2
+
+Begin tran
+
+Update Person2
+Set FirstName='Jason'
+Where Email='JAnderson@gmail.com'
+
+Commit Tran
+
+Begin tran
+
+Update Person2
+Set LastName='Smith'
+
+Rollback tran --Reverses what you did since begin tran
+
+Delete from Person2
+Where PersonKey=130
+
+Drop Table Person2
+
+
