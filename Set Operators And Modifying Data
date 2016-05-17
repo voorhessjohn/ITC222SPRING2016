@@ -1,5 +1,5 @@
 --Create a Union between Person and PersonAddress in Community assist and Employee in MetroAlt. You will need to fully qualify the tables in the CommunityAssist part of the query:
-CommunityAssist.dbo.Person etc
+--CommunityAssist.dbo.Person etc
 Use MetroAlt
 
 Select EmployeeZipCode, EmployeeCity--both sides of the union have to have the same structure
@@ -33,6 +33,7 @@ From Community_Assist.dbo.PersonAddress
 --For the details on 12 add General Maintenance and Brake Service, 
 --for 24 just General Maintenance. 
 --You can use employees 60 and 69 they are both mechanics.
+
 
 --Create a table that has the same structure as Employee, 
 --name it Drivers. Use the Select form of an insert to copy 
