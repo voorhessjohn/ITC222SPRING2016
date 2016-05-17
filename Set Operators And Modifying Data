@@ -1,0 +1,46 @@
+--Create a Union between Person and PersonAddress in Community assist and Employee in MetroAlt. You will need to fully qualify the tables in the CommunityAssist part of the query:
+CommunityAssist.dbo.Person etc
+Use MetroAlt
+
+Select EmployeeZipCode, EmployeeCity--both sides of the union have to have the same structure
+From Employee --Column names from the top will persist for the whole query
+Union
+Select PersonAddressZip,  PersonAddressCity--PersonFirstName should match PersonFirstName above
+From Community_Assist.dbo.PersonAddress
+
+--Do an intersect between the PersonAddress and Employee that returns the cities that are in both.
+
+Select EmployeeCity--both sides of the union have to have the same structure
+From Employee --Column names from the top will persist for the whole query
+Intersect
+Select PersonAddressCity--PersonFirstName should match PersonFirstName above
+From Community_Assist.dbo.PersonAddress
+
+--Do an except between PersonAddress and Employee that returns the cities that are not in both.
+
+Select EmployeeCity--both sides of the union have to have the same structure
+From Employee --Column names from the top will persist for the whole query
+Except
+Select PersonAddressCity--PersonFirstName should match PersonFirstName above
+From Community_Assist.dbo.PersonAddress
+
+--For this we will use the Data Tables we made in Assignment 1. 
+--Insert the following services into BusService: 
+--General Maintenance, Brake service, hydraulic maintenance, and Mechanical Repair. 
+--You can add descriptions if you like. 
+--Next add entries into the Maintenance table for busses 12 and 24. 
+--You can use today’s date. 
+--For the details on 12 add General Maintenance and Brake Service, 
+--for 24 just General Maintenance. 
+--You can use employees 60 and 69 they are both mechanics.
+
+--Create a table that has the same structure as Employee, 
+--name it Drivers. Use the Select form of an insert to copy 
+--all the employees whose position is driver (1) into the new table.
+
+--Edit the record for Bob Carpenter (Key 3) 
+--so that his first name is Robert and is City is Bellevue
+
+--Give everyone a 3% Cost of Living raise.
+
+--Delete the position Detailer
