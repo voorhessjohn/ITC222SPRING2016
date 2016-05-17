@@ -114,6 +114,61 @@ inner join EmployeePosition ep
 on e.EmployeeKey=ep.EmployeeKey
 inner join Position p
 on ep.PositionKey=p.PositionKey
---Create a view of the Bus Schedule assignment that returns the Shift times, The Employee first and last name, the bus route (key) and the Bus (key). Use the view to list the shifts for Neil Pangle in October of 2014
+
+
+--Create a view of the Bus Schedule assignment that returns the Shift times, The Employee first and last name, 
+--the bus route (key) and the Bus (key). 
+go
+Create view vw_BusScheduleAssignment
+AS
+Select BusDriverShiftStartTime [Starts],
+BusDriverShiftStopTime [Stops],
+BusScheduleAssignmentDate [Date],
+EmployeeFirstName [FirstName],
+EmployeeLastName [LastName],
+BusRouteKey [BusRoute],
+BusKey [Bus]
+From BusDriverShift bds
+inner join BusScheduleAssignment bsa
+on bds.BusDriverShiftKey=bsa.BusDriverShiftKey
+inner join Employee e
+on bsa.EmployeeKey=e.EmployeeKey
+
+
+--Use the view to list the shifts for Neil Pangle in October of 2014
+go
+select [Starts], [Stops]
+from vw_BusScheduleAssignment
+where [LastName]='Pangle' and [FirstName]='Neil' and year([Date])='2014' and month([Date])='10'
+
+
+
 --Create a table valued function that takes a parameter of city and returns all the employees who live in that city
+
+go
+declare @EmployeeCity nvarchar(255)
+set @EmployeeCity = 'Bellevue'
+
+Create function fx_CityEmployee
+(@EmployeeCity nvarchar(255))
+returns Table
+As
+Return
+Select EmployeeLastName, EmployeeFirstName
+From Employee
+Where EmployeeCity = @EmployeeCity
+--use this function in the from clause
+go
+Select * from fx_CityEmployee('Seattle') 
+
 --Use the cross apply operator to return the last 3 routes driven by each driver
+--cross apply
+--THIS DOESN'T REALLY WORK RIGHT (You asked me to turn it in anyway so you could check it out.)
+Select distinct a.EmployeeKey, a.BusScheduleAssignmentDate, a.BusRouteKey
+From BusScheduleAssignment a
+cross Apply
+(Select EmployeeKey, BusScheduleAssignmentDate, BusRouteKey
+From BusScheduleAssignment as b
+Where b.BusRouteKey = a.BusRouteKey
+Order By b.BusScheduleAssignmentDate desc, b.EmployeeKey desc
+Offset 0 rows fetch first 3 rows only) as c
