@@ -1,0 +1,101 @@
+
+/**************temporary tables**********/
+--for intermediate storage, mostly
+--one type
+--limited to one session, private to the session
+use Community_Assist
+
+--Local temp table
+Create Table #TempGrants --has # in front, this denotes a local, session-specific temp table
+(
+	GrantRequestKey int,
+	GrantRequestDate datetime,
+	PersonKey int,
+	GrantTypeKey int,
+	GrantRequestAmount money
+)
+
+Insert into #TempGrants(GrantRequestKey, GrantRequestDate, PersonKey, GrantTypeKey, GrantRequestAmount)
+Select GrantRequestKey, GrantRequestDate, PersonKey, GrantTypeKey, GrantRequestAmount from GrantRequest
+Where month(GrantRequestDate)=9
+
+Select * from #TempGrants
+
+--another type is global
+Create Table ##TempGrantsGlobal --has ## in front, this denotes a global temp table
+(
+	GrantRequestKey int,
+	GrantRequestDate datetime,
+	PersonKey int,
+	GrantTypeKey int,
+	GrantRequestAmount money
+)
+
+Insert into ##TempGrantsGlobal(GrantRequestKey, GrantRequestDate, PersonKey, GrantTypeKey, GrantRequestAmount)
+Select GrantRequestKey, GrantRequestDate, PersonKey, GrantTypeKey, GrantRequestAmount from GrantRequest
+Where month(GrantRequestDate)=9
+
+Select * from ##TempGrantsGlobal
+--visible to everyone that is logged in
+
+
+
+/*************functions**************/
+--for calculations that are unique to your db
+
+--scalar function that operates row by row
+Go
+Create function fx_Cube
+(@number int)--separate multiple parameters with comma
+returns int
+As
+Begin
+Declare @Cube int
+Set @Cube = @number * @number * @number
+Return @Cube
+End
+
+Go
+Select dbo.fx_Cube(3) as [Cube]
+
+Select PersonKey, dbo.fx_Cube(PersonKey) as cubed from Person
+Order by cubed
+
+
+--a function to make a percentage
+Go
+Alter Function fx_PercentAmount
+(@amount money, @percentage decimal(10, 2))--parameters
+returns money --return type
+As 
+Begin
+	if(not @amount=0)--check to make sure not zero
+		Begin--start outer if
+			if (@percentage > 1)
+				Begin
+					Set @percentage = @percentage / 100
+				End--end outer if
+		Declare @result money--declare variable for result
+		Set @result = @amount * @percentage--calculate amount
+		End--end outer if
+	Else--begin else
+	Begin
+		Set @result=0;
+	End--end else
+return @result--return results
+End
+
+select sum(DonationAmount), dbo.fx_PercentAmount(sum(DonationAmount), 20) as Org,
+dbo.fx_Percentamount(sum(DonationAmount), .8) as charity
+From Donation
+
+
+/***********stored procedures*******/
+--groups of sql code that execute as a single executable thread
+--useful for controlling things like how users update tables, inserts etc
+--because of error trapping and isolation
+
+
+/***********triggers************/
+--stored procedure that is triggered by an event
+
