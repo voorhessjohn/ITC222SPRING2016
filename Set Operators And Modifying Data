@@ -24,24 +24,104 @@ Except
 Select PersonAddressCity--PersonFirstName should match PersonFirstName above
 From Community_Assist.dbo.PersonAddress
 
+
+
 --For this we will use the Data Tables we made in Assignment 1. 
 --Insert the following services into BusService: 
 --General Maintenance, Brake service, hydraulic maintenance, and Mechanical Repair. 
 --You can add descriptions if you like. 
+Use MetroAlt
+
+Create Table BusService
+(
+	BusServiceKey int identity(1,1) primary key,
+	BusServiceName nvarchar(255) not null,
+	BusServiceDescription nvarchar(255)
+)
+
+INSERT INTO BusService ( BusServiceName ) VALUES
+('GeneralMaintenance'),
+('BrakeService'),
+('HydraulicMaintenance'),
+('Mechanical Repair');
+
+INSERT INTO Maintenance ( BusKey, MaintenanceDate ) VALUES
+('12', GETDATE()),
+('24', GETDATE());
+
 --Next add entries into the Maintenance table for busses 12 and 24. 
 --You can use today’s date. 
 --For the details on 12 add General Maintenance and Brake Service, 
 --for 24 just General Maintenance. 
 --You can use employees 60 and 69 they are both mechanics.
+ALTER TABLE MaintenanceDetail
+ADD CONSTRAINT FK_MaintenanceDetail_Maintenance
+FOREIGN KEY (MaintenanceKey)
+REFERENCES Maintenance(MaintenanceKey);
 
+INSERT INTO MaintenanceDetail ( EmployeeKey, MaintenanceNotes) VALUES
+(60, 'General Maintenance and Brake Service')
+WHERE MaintenanceKey='1';
+
+UPDATE MaintenanceDetail
+SET EmployeeKey=60 
+Where MaintenanceKey='1'
+
+UPDATE MaintenanceDetail
+SET EmployeeKey=69
+WHERE MaintenanceKey='2'
+
+UPDATE MaintenanceDetail
+SET MaintenanceNotes='General Maintenance and Brake Service' 
+Where MaintenanceKey='1'
+
+UPDATE MaintenanceDetail
+SET MaintenanceNotes='General Maintenance' 
+Where MaintenanceKey='2'
 
 --Create a table that has the same structure as Employee, 
---name it Drivers. Use the Select form of an insert to copy 
---all the employees whose position is driver (1) into the new table.
+--name it Drivers. 
+CREATE TABLE Driver(
+	EmployeeKey int NOT NULL,
+	DriverLastName nvarchar(255) not null,
+	DriverFirstName nvarchar(255) not null,
+	DriverAddress nvarchar(255) not null,
+	DriverCity nvarchar(255) not null,
+	DriverZipCode nchar(5) not null,
+	DriverPhone nchar(10) null,
+	DriverEmail nvarchar(255) not null,
+	DriverHireDate date not null	
+)
+
+ALTER TABLE Driver
+ADD CONSTRAINT fk_Employee_Driver
+FOREIGN KEY (EmployeeKey)
+References Employee (EmployeeKey);
+
+--Use the Select form of an insert to copy all the employees whose position is driver 
+--(1) into the new table.
+Insert into Driver(EmployeeKey, DriverLastName, DriverFirstName, DriverAddress, DriverCity, DriverZipCode, DriverPhone, DriverEmail, DriverHireDate)
+Select Employee.EmployeeKey, EmployeeLastName, EmployeeFirstName, EmployeeAddress, EmployeeCity, EmployeeZipCode, EmployeePhone, EmployeeEmail, EmployeeHireDate
+From Employee
+INNER JOIN EmployeePosition
+ON Employee.EmployeeKey = EmployeePosition.EmployeeKey
+WHERE PositionKey = '1'
+
 
 --Edit the record for Bob Carpenter (Key 3) 
 --so that his first name is Robert and is City is Bellevue
+UPDATE Employee
+SET EmployeeFirstName='Robert' 
+Where EmployeeKey='3'
+
+UPDATE Employee
+SET EmployeeCity='Bellevue' 
+Where EmployeeKey='3'
 
 --Give everyone a 3% Cost of Living raise.
+UPDATE EmployeePosition
+SET EmployeeHourlyPayRate = (EmployeeHourlyPayRate*1.03)
 
 --Delete the position Detailer
+DELETE FROM Position
+WHERE PositionName='Detailer'
