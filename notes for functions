@@ -95,7 +95,110 @@ From Donation
 --useful for controlling things like how users update tables, inserts etc
 --because of error trapping and isolation
 
+--parameterized view
+use Community_Assist
+
+go
+create procedure usp_HRViewProc --user stored procedure
+@EmployeeKey int
+As --as always starts the body
+Select PersonLastName,
+PersonFirstName,
+PersonEmail,
+EmployeeHireDate,
+EmployeeAnnualSalary
+From Person p
+inner join Employee e
+on p.PersonKey=e.PersonKey
+Where EmployeeKey = @EmployeeKey --the only difference between this and a view is that we're passing in a variable ALSO
+--in a view you would select against it, can't do that with a stored procedure, you have to execute it
+
+exec usp_HRViewProc 2
+
+go 
+--create hash password function
+Create function fx_hashPasword2
+(@seed int, @password nvarchar(50))
+returns varbinary(500)
+As
+Begin
+Declare @newPassword nvarchar(70)
+Set @newPassword=@password + cast(@seed as nvarchar(20))
+Declare @hashed varbinary(500)
+set @hashed=hashbytes('sha2_512',@newPassword)
+return @hashed
+End
+
+--new person stored procedure
+go
+alter proc usp_NewPerson
+@LastName nvarchar(255),
+@FirstName nvarchar(255)=null,
+@Email nvarchar(255),
+@Password nvarchar(50),
+@AptNumber nvarchar(255)=null,
+@Street nvarchar(255),
+@City nvarchar(255)='Seattle',
+@State nvarchar(255)='WA',
+@Zip nvarchar(255),
+@HomePhone nvarchar(255)
+As
+
+--test to see if exists
+
+if exists
+(Select PersonLastName, PersonEmail from Person
+Where PersonLastName=@LastName and Personemail=@Email)
+Begin
+Print 'Already registered'
+Return
+End
+--create pasword hash
+Declare @seed int
+Set @seed = dbo.fx_GetSeed()
+declare @HashedPass varbinary(500)
+set @HashedPass = dbo.fx_HashPassword(@seed, @password)
+
+begin tran --start a transaction
+begin try --begin try
+
+--insert into person
+Insert into Person(
+PersonLastName, PersonFirstName, 
+PersonEmail, PersonPassWord, 
+PersonEntryDate, PersonPassWordSeed)
+Values (@LastName, @FirstName, @Email, @HashedPass, GetDate(), @seed)
+
+declare @key int = ident_current('Person')--returns most recent insert
+
+Insert into PersonAddress(
+PersonAddressApt, PersonAddressStreet, 
+PersonAddressCity, PersonAddressState, 
+PersonAddressZip, PersonKey)
+Values(@AptNumber, @Street, @City, @State, @Zip, @Key)
+
+Insert into Contact(
+ContactNumber, ContactTypeKey, PersonKey)
+Values(@HomePhone, 1, @Key)
+
+Commit Tran --commit the transaction if no error
+End Try
+Begin Catch
+Rollback Tran
+Print Error_Message()
+End Catch
+
+exec usp_NewPerson
+@LastName = 'Kong', 
+@FirstName = 'King', 
+@Email = 'kingkong@bananas.com', 
+@Password = 'KongPass',
+ 
+@Street = '101 Jungle Blvd', 
+ 
+@Zip = '98102', 
+@HomePhone = '2065558989'
+
 
 /***********triggers************/
 --stored procedure that is triggered by an event
-
