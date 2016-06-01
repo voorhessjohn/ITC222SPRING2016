@@ -1,4 +1,3 @@
-
 /**************temporary tables**********/
 --for intermediate storage, mostly
 --one type
@@ -199,6 +198,144 @@ exec usp_NewPerson
 @Zip = '98102', 
 @HomePhone = '2065558989'
 
+--stored procedure  to update address
+Create proc usp_UpdateAddress
+	@PersonAddressApt nvarchar(255) = null, 
+	@PersonAddressStreet nvarchar(255), 
+	@PersonAddressCity nvarchar(255) = 'Seattle', 
+	@PersonAddressState nvarchar(255) = 'WA', 
+	@PersonAddressZip nvarchar(255), 
+	@PersonKey int
+As
+Begin Tran
+Begin Try
+	Update PersonAddress
+	Set PersonAddressApt = @PersonAddressApt,
+		PersonAddressStreet = @PersonAddressStreet,
+		PersonAddressCity = @PersonAddressCity,
+		PersonAddressState = @PersonAddressState,
+		PersonAddressZip = @PersonAddressZip
+		Where PersonKey = @PersonKey
+Commit Tran
+End Try
+Begin Catch
+Rollback Tran
+print error_message()
+End Catch	
+
+Select * from PersonAddress
+
+exec usp_UpdateAddress
+@PersonAddressApt = '50000', 
+@PersonAddressStreet = '100 South Mann Street',
+@PersonAddressZip = '98001', 
+@PersonKey = 1		
+
 
 /***********triggers************/
 --stored procedure that is triggered by an event
+--usually insert, update, and delete
+--can also execute on CREATE or DROP
+--have no parameters so you can pass values to them.
+
+--some happen after (for) an event, some happen instead of an event (intercepts and doesn't allow the action to happen)
+
+create trigger Tr_PersonDelete on Person
+instead of Delete
+As
+if not exists
+	(Select name from sys.Tables
+	where name = 'PersonDelete')
+Begin
+CREATE TABLE [dbo].[PersonDelete](
+	[PersonKey] int NOT NULL,
+	[PersonLastName] nvarchar(255) NOT NULL,
+	[PersonFirstName] nvarchar(255) NULL,
+	[PersonEmail] nvarchar(255) NULL,
+	[PersonPassWord] varbinary(500) NULL,
+	[PersonEntryDate] datetime NOT NULL,
+	[PersonPassWordSeed] int NULL,
+	)
+End
+INSERT INTO PersonDelete(
+	PersonKey,
+	PersonLastName,
+	PersonFirstName,
+	PersonEmail,
+	PersonPassword,
+	PersonEntryDate,
+	PersonPasswordSeed
+)
+Select PersonKey,
+	PersonLastName,
+	PersonFirstName,
+	PersonEmail,
+	PersonPassword,
+	PersonEntryDate,
+	PersonPasswordSeed
+From deleted --temp table in temp db that stores deletions and updates
+
+select * from Person
+
+insert into Person(
+PersonLastName, 
+PersonFirstName, 
+PersonEmail, 
+PersonEntryDate)
+values('nothere', 'long', 'nothere@long.com', GetDate())
+
+delete from Person where PersonKey = 132
+
+select * from PersonDelete
+
+
+--check to see f request is larger than maximum allowed
+Create Trigger tr_CheckMax on GrantRequest
+for Insert
+as
+if not exists
+(select name from sys.tables
+	Where name ='OverMax')
+Begin
+Create Table OverMax
+(
+	RequestDate date,
+	PersonKey int,
+	GrantTypeKey int,
+	Explanation nvarchar(255) null,
+	RequestAmount money,
+)
+
+End
+
+Declare @GrantMax money
+Declare @GrantType int
+Declare @RequestAmount money
+
+Select @GrantType=GrantTypeKey from inserted
+Select @GrantMax = GrantTypeMaximum from GrantType
+	where GrantTypeKey = @GrantType
+Select @RequestAmount = GrantRequestAmount from inserted
+
+if @RequestAmount > @GrantMax
+Begin
+Insert into OverMax(
+	RequestDate,
+	PersonKey,
+	GrantTypeKey,
+	Explanation,
+	RequestAmount)
+Select GrantRequestDate, PersonKey, GrantTypeKey, GrantRequestExplanation, GrantRequestAmount
+from inserted
+End
+
+select * from GrantType
+
+insert into GrantRequest(GrantRequestDate, 
+PersonKey, 
+GrantTypeKey, 
+GrantRequestExplanation, 
+GrantRequestAmount)
+values (GetDate(),1,1,'Always hungry', 300.00)
+
+select * from OverMax
