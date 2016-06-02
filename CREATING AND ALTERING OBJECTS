@@ -70,7 +70,7 @@ returns decimal(5,2)
 As
 Begin
 Declare @NewEmployeePayRate as decimal(5,2)
-Set @NewEmployeePayRate = @EmployeeHourlyPayRateMax - (DIFFERENCE(@EmployeeHourlyPayRateMax,@EmployeeHourlyPayRateMin))
+Set @NewEmployeePayRate = @EmployeeHourlyPayRateMax - (@EmployeeHourlyPayRateMax-@EmployeeHourlyPayRateMin)
 Return @NewEmployeePayRate
 
 
