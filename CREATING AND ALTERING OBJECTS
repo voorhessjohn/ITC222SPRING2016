@@ -31,7 +31,7 @@ Select * from ##TempStops
 --3.Create a function to create an employee email address. 
 --Every employee Email follows the pattern of "firstName.lastName@metroalt.com"
 Go
-Alter function fx_Email
+Create function fx_Email
 (@firstName nvarchar(255), @lastName nvarchar(255))--separate multiple parameters with comma
 returns nvarchar(255)
 As
@@ -47,7 +47,7 @@ Order by EmployeeKey
 
 --4.Create a function to determine a two week pay check of an individual employee.
 Go
-Alter function fx_TwoWeekPay    --this is marked 'alter' because I had to alter the 
+Create function fx_TwoWeekPay    --this is marked 'alter' because I had to alter the 
 (@EmployeePayRate decimal(7,2)) --data type a couple of times to avoid overrunning the 
 returns decimal(7,2)            --data type that I had originally declared
 As
@@ -69,14 +69,39 @@ Create function fx_NewEmployeePayRate
 returns decimal(5,2)
 As
 Begin
-Declare @NewEmployeePayRate as decimal(5,2)
+Declare @NewEmployeePayRate decimal(5,2)
 Set @NewEmployeePayRate = @EmployeeHourlyPayRateMax - (@EmployeeHourlyPayRateMax-@EmployeeHourlyPayRateMin)
 Return @NewEmployeePayRate
+End
 
+Select dbo.fx_NewEmployeePayRate(PositionKey, max(EmployeeHourlyPayRate), min(EmployeeHourlyPayRate)) as NewEmployeeHourlyPay from EmployeePosition
+Where PositionKey = 9
+Group by PositionKey
 
 --6.Create a stored procedure to enter a new employee, position and pay rate which 
 --uses the functions to create an email address and the one to determine initial pay. 
 --Use the stored procedure to add a new employee.
+go
+create proc usp_NewPerson
+@EmployeeLastName, 
+@EmployeeFirstName, 
+@EmployeeAddress, 
+@EmployeeCity, 
+@EmployeeZipCode, 
+@EmployeePhone, 
+@EmployeeEmail, 
+@EmployeeHireDate
+As
+
+--test to see if exists
+
+if exists
+(Select PersonLastName, PersonEmail from Person
+Where PersonLastName=@LastName and Personemail=@Email)
+Begin
+Print 'Already registered'
+Return
+End
 
 --6.1.Create a stored procedure that allows an employee to edit their own information name, address, city, zip, not email etc.  
 --The employee key should be one of its parameters. Use the procedure to alter one of the employees information
