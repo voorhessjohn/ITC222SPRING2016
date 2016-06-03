@@ -83,25 +83,61 @@ Group by PositionKey
 --Use the stored procedure to add a new employee.
 go
 create proc usp_NewPerson
+@EmployeeLastName nvarchar(255), 
+@EmployeeFirstName nvarchar(255), 
+@EmployeeAddress nvarchar(255), 
+@EmployeeCity nvarchar(255), 
+@EmployeeZipCode nchar(5), 
+@EmployeePhone nchar(10),  
+@PositionKey int
+
+As
+
+--test to see if exists
+
+if exists
+(Select EmployeeLastName, EmployeeEmail from Employee
+Where EmployeeLastName=@EmployeeLastName and EmployeeEmail=@Email)
+Begin
+Print 'Already registered'
+Return
+End
+
+insert into Employee (
+EmployeeLastName, 
+EmployeeFirstName, 
+EmployeeAddress, 
+EmployeeCity, 
+EmployeeZipCode, 
+EmployeePhone, 
+EmployeeEmail, 
+EmployeeHireDate)
+values (
 @EmployeeLastName, 
 @EmployeeFirstName, 
 @EmployeeAddress, 
 @EmployeeCity, 
 @EmployeeZipCode, 
 @EmployeePhone, 
-@EmployeeEmail, 
-@EmployeeHireDate
-As
+dbo.fx_Email(@EmployeeFirstName, @EmployeeLastName), 
+getdate())
 
---test to see if exists
+declare @key int = ident_current('Employee')
+declare @max decimal(5,2)
+set @max = (select max(EmployeeHourlyPayRate) from EmployeePosition)
+declare @min decimal(5,2)
+set @min = (select min(EmployeeHourlyPayRate) from EmployeePosition)
 
-if exists
-(Select PersonLastName, PersonEmail from Person
-Where PersonLastName=@LastName and Personemail=@Email)
-Begin
-Print 'Already registered'
-Return
-End
+insert into EmployeePosition (
+EmployeeKey, 
+PositionKey, 
+EmployeeHourlyPayRate, 
+EmployeePositionDateAssigned)
+values (
+@key,
+@PositionKey,
+dbo.fx_NewEmployeePayRate(@PositionKey, @max, @min),
+getdate())
 
 --6.1.Create a stored procedure that allows an employee to edit their own information name, address, city, zip, not email etc.  
 --The employee key should be one of its parameters. Use the procedure to alter one of the employees information
