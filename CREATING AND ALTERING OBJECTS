@@ -239,13 +239,17 @@ End
 
 Declare @EmployeeKey int
 Select @EmployeeKey = EmployeeKey from inserted
+Declare @BusKey int
+Select @Buskey = BusKey from inserted
 Declare @ShiftDate date
 Select @ShiftDate = BusScheduleAssignmentDate from inserted
 
 if @ShiftDate = 
-(select BusScheduleAssignmentDate from BusScheduleAssignment) 
+(select BusScheduleAssignmentDate from BusScheduleAssignment where BusScheduleAssignmentDate = @ShiftDate) 
 and 
-@EmployeeKey = (select EmployeeKey from BusScheduleAssignment)
+@EmployeeKey = (select EmployeeKey from BusScheduleAssignment where EmployeeKey = @EmployeeKey)
+and 
+@BusKey = (select BusKey from BusScheduleAssignment where BusKey = @BusKey)
 Begin
 Insert into OverTime(
 	BusDriverShiftKey, 
