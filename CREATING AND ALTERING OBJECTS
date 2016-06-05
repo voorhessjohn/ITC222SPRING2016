@@ -81,27 +81,35 @@ Group by PositionKey
 --6.Create a stored procedure to enter a new employee, position and pay rate which 
 --uses the functions to create an email address and the one to determine initial pay. 
 --Use the stored procedure to add a new employee.
+
+/*NOTE FROM JOHN - I left some artifacts in from trying to figure out how to call the email function
+in a select statement.  Also, the code is for 'ALTER PROC' because I created it first and then had to alter 
+it four times to get it to work correctly*/
+
 go
-create proc usp_NewPerson
+alter proc usp_NewPerson
 @EmployeeLastName nvarchar(255), 
 @EmployeeFirstName nvarchar(255), 
 @EmployeeAddress nvarchar(255), 
 @EmployeeCity nvarchar(255), 
 @EmployeeZipCode nchar(5), 
-@EmployeePhone nchar(10),  
+@EmployeePhone nchar(10),
 @PositionKey int
 
 As
-
+Begin tran
+begin try
 --test to see if exists
 
 if exists
-(Select EmployeeLastName, EmployeeEmail from Employee
-Where EmployeeLastName=@EmployeeLastName and EmployeeEmail=@Email)
+(Select EmployeeLastName, EmployeeFirstname from Employee
+Where EmployeeLastName=@EmployeeLastName and EmployeeFirstName=@EmployeeFirstName)
 Begin
 Print 'Already registered'
 Return
 End
+
+
 
 insert into Employee (
 EmployeeLastName, 
@@ -109,8 +117,8 @@ EmployeeFirstName,
 EmployeeAddress, 
 EmployeeCity, 
 EmployeeZipCode, 
-EmployeePhone, 
-EmployeeEmail, 
+EmployeePhone,
+EmployeeEmail,  
 EmployeeHireDate)
 values (
 @EmployeeLastName, 
@@ -118,10 +126,11 @@ values (
 @EmployeeAddress, 
 @EmployeeCity, 
 @EmployeeZipCode, 
-@EmployeePhone, 
-dbo.fx_Email(@EmployeeFirstName, @EmployeeLastName), 
+@EmployeePhone,
+dbo.fx_Email(@EmployeeFirstName, @EmployeeLastName),  
 getdate())
 
+--declare @email nvarchar(255)= dbo.fx_Email(@EmployeeFirstName, @EmployeeLastName)
 declare @key int = ident_current('Employee')
 declare @max decimal(5,2)
 set @max = (select max(EmployeeHourlyPayRate) from EmployeePosition)
@@ -139,7 +148,131 @@ values (
 dbo.fx_NewEmployeePayRate(@PositionKey, @max, @min),
 getdate())
 
+--insert into Employee (
+--EmployeeEmail)
+--values (
+--dbo.fx_Email(@EmployeeFirstName, @EmployeeLastName))
+
+Commit Tran --commit the transaction if no error
+End Try
+Begin Catch
+Rollback Tran
+Print Error_Message()
+End Catch
+
+go
+exec usp_NewPerson
+@EmployeeLastName = 'Kong', 
+@EmployeeFirstName = 'King', 
+@EmployeeAddress = '123 Jungle Street', 
+@EmployeeCity = 'Seattle', 
+@EmployeeZipCode = '98102', 
+@EmployeePhone = '5554446666',
+@PositionKey = '3'
+
+select * from Employee
+
+
+
 --6.1.Create a stored procedure that allows an employee to edit their own information name, address, city, zip, not email etc.  
 --The employee key should be one of its parameters. Use the procedure to alter one of the employees information
+go
+create proc usp_EditPerson
+@EmployeeKey int, 
+@EmployeeLastName nvarchar(255), 
+@EmployeeFirstName nvarchar(255), 
+@EmployeeAddress nvarchar(255), 
+@EmployeeCity nvarchar(255), 
+@EmployeeZipCode nchar(5), 
+@EmployeePhone nchar(10)
 
---7.Create a trigger to fire when an employee is assigned to a second shift in a day. Have it write to an overtime table. the Trigger should create the overtime table if it doesn't exist. Add an employee for two shifts to test the trigger.
+as
+Begin Tran
+Begin try
+Update Employee
+	Set EmployeeLastName = @EmployeeLastName,
+		EmployeeFirstName = @EmployeeFirstName,
+		EmployeeAddress = @EmployeeAddress,
+		EmployeeCity = @EmployeeCity,
+		EmployeeZipCode = @EmployeeZipCode
+		Where EmployeeKey = @EmployeeKey
+Commit Tran
+End Try
+Begin Catch
+Rollback Tran
+print error_message()
+End Catch
+
+Select * from Employee
+
+exec usp_EditPerson
+@EmployeeKey = '503', 
+@EmployeeLastName = 'Potato', 
+@EmployeeFirstName = 'Dave', 
+@EmployeeAddress = '123 City Street', 
+@EmployeeCity = 'Bellevue', 
+@EmployeeZipCode = '98134', 
+@EmployeePhone = '4435546657'
+
+
+
+/*7.Create a trigger to fire when an employee is assigned to a second shift in a day. 
+Have it write to an overtime table. 
+the Trigger should create the overtime table if it doesn't exist. 
+Add an employee for two shifts to test the trigger.*/
+alter trigger tr_Overtime on BusScheduleAssignment
+instead of Insert
+as
+if not exists
+(select name from sys.tables
+	Where name ='OverTime')
+Begin
+Create Table OverTime
+(
+	BusDriverShiftKey int, 
+	EmployeeKey int, 
+	BusRouteKey int, 
+	BusScheduleAssignmentDate date, 
+	BusKey int
+)
+End
+
+Declare @EmployeeKey int
+Select @EmployeeKey = EmployeeKey from inserted
+Declare @ShiftDate date
+Select @ShiftDate = BusScheduleAssignmentDate from inserted
+
+if @ShiftDate = 
+(select BusScheduleAssignmentDate from BusScheduleAssignment) 
+and 
+@EmployeeKey = (select EmployeeKey from BusScheduleAssignment)
+Begin
+Insert into OverTime(
+	BusDriverShiftKey, 
+	EmployeeKey, 
+	BusRouteKey, 
+	BusScheduleAssignmentDate, 
+	BusKey)
+Select  
+	BusDriverShiftKey, 
+	EmployeeKey, 
+	BusRouteKey, 
+	BusScheduleAssignmentDate, 
+	BusKey
+from inserted
+End
+
+select * from BusScheduleAssignment
+
+insert into BusScheduleAssignment (
+	BusDriverShiftKey, 
+	EmployeeKey, 
+	BusRouteKey, 
+	BusScheduleAssignmentDate, 
+	BusKey)
+values (
+	'1',
+	'1',
+	'1',
+	'2012-01-02',
+	'2')
