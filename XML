@@ -1,0 +1,44 @@
+--XML assignment
+use MetroAlt
+Create xml schema collection managementNotesXMLschema
+as
+'<?xml version="1.0" encoding="utf-8"?>
+<xs:schema attributeFormDefault="unqualified" elementFormDefault="qualified" targetNamespace="http://www.metroalt.com/notes" xmlns:xs="http://www.w3.org/2001/XMLSchema">
+  <xs:element name="maintenancenotes">
+    <xs:complexType>
+      <xs:sequence>
+        <xs:element name="title" type="xs:string" />
+        <xs:element maxOccurs="unbounded" name="note" type="xs:string" />
+      </xs:sequence>
+    </xs:complexType>
+  </xs:element>
+</xs:schema>'
+
+create table MaintenanceNotes
+(
+	maintenanceNotesKey int identity(1,1),
+	maintenanceNotesDate Date,
+	maintenanceNote xml (managementNotesXMLschema)
+)
+
+insert into MaintenanceNotes
+(maintenanceNotesDate, maintenanceNote)
+values
+(GetDate(), '<?xml version="1.0" encoding="utf-8"?>
+<maintenancenotes xmlns="http://www.metroalt.com/notes">
+  <title>Bus Service 24</title>
+  <note>The brakes are shot</note>
+  <note>Needs new tires</note>
+</maintenancenotes>')
+
+select * from MaintenanceNotes
+
+use Community_Assist
+
+select * from GrantReviewComment
+
+select GrantReviewKey, 
+EmployeeKey, 
+GrantReviewCommentDate, 
+GrantReviewNote.query('declare namespace rn="http://www.community_assist.org/reviewnotes";//rn:reviewnote/rn:recommendation')
+from GrantReviewComment
