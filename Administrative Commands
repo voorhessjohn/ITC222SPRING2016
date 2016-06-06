@@ -1,0 +1,31 @@
+use MetroAlt
+
+/*This schema is related to ownership
+default ownership is dbo*/
+
+go
+create schema ManagementSchema
+
+go
+create view ManagementSchema.vw_AnnualRidership
+As
+Select Year(BusScheduleAssignmentDate) as [Year], sum(Riders) as Total
+From BusScheduleAssignment bsa
+join Ridership r
+on bsa.BusScheduleAssignmentKey=r.BusScheduleAssigmentKey
+group by year(BusScheduleAssignmentDate)
+
+go
+Create role ManagementRole
+
+Grant select, insert, update on Employee to ManagementRole
+
+Grant select on Schema::ManagementSchema to ManagementRole
+
+Create login Albert with password='password'
+
+Create user Albert for login Albert
+
+exec sp_addrolemember 'ManagementRole', 'Albert'
+
+backup database MetroAlt to disk ='C:\Backup\MetroAlt.bak'
