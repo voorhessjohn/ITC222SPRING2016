@@ -215,7 +215,7 @@ exec usp_EditPerson
 @EmployeePhone = '4435546657'
 
 
-
+use MetroAlt
 /*7.Create a trigger to fire when an employee is assigned to a second shift in a day. 
 Have it write to an overtime table. 
 the Trigger should create the overtime table if it doesn't exist. 
@@ -244,12 +244,9 @@ Select @Buskey = BusKey from inserted
 Declare @ShiftDate date
 Select @ShiftDate = BusScheduleAssignmentDate from inserted
 
-if @ShiftDate = 
-(select BusScheduleAssignmentDate from BusScheduleAssignment where BusScheduleAssignmentDate = @ShiftDate) 
-and 
-@EmployeeKey = (select EmployeeKey from BusScheduleAssignment where EmployeeKey = @EmployeeKey)
-and 
-@BusKey = (select BusKey from BusScheduleAssignment where BusKey = @BusKey)
+if exists (select BusScheduleAssignmentDate from BusScheduleAssignment where BusScheduleAssignmentDate = @ShiftDate) 
+and exists (select EmployeeKey from BusScheduleAssignment where EmployeeKey = @EmployeeKey)
+and exists(select BusKey from BusScheduleAssignment where BusKey = @BusKey)
 Begin
 Insert into OverTime(
 	BusDriverShiftKey, 
@@ -267,6 +264,8 @@ from inserted
 End
 
 select * from BusScheduleAssignment
+
+select * from OverTime
 
 insert into BusScheduleAssignment (
 	BusDriverShiftKey, 
